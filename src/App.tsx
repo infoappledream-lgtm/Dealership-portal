@@ -700,6 +700,7 @@ export default function App() {
                     controlsList="nofullscreen nodownload"
                     disablePictureInPicture
                     autoPlay
+                    muted
                     playsInline
                   >
                     Your browser does not support the video tag.
@@ -765,9 +766,9 @@ export default function App() {
                             alt={branding.dealershipName}
                             className="w-full h-full object-cover object-[center_30%]"
                           />
-                          <div className="absolute inset-0 bg-vw-blue/40 mix-blend-multiply" />
-                          <div className="absolute inset-0 bg-gradient-to-r from-vw-blue via-vw-blue/60 to-transparent md:to-vw-blue/20" />
-                          <div className="absolute inset-0 bg-gradient-to-t from-vw-blue via-transparent to-transparent opacity-50" />
+                          <div className="absolute inset-0 bg-vw-blue/20 mix-blend-multiply" />
+                          <div className="absolute inset-0 bg-gradient-to-r from-vw-blue via-vw-blue/40 to-transparent md:to-transparent" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-vw-blue/80 via-transparent to-transparent opacity-70" />
                         </div>
 
                         {/* Content Container */}
