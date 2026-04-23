@@ -13,14 +13,12 @@ export default defineConfig(({mode}) => {
         name: 'configure-response-headers',
         configureServer: (server) => {
           server.middlewares.use((_req, res, next) => {
-            res.setHeader("X-Frame-Options", "ALLOWALL");
             res.setHeader("Content-Security-Policy", "frame-ancestors *");
             next();
           });
         },
         configurePreviewServer: (server) => {
           server.middlewares.use((_req, res, next) => {
-            res.setHeader("X-Frame-Options", "ALLOWALL");
             res.setHeader("Content-Security-Policy", "frame-ancestors *");
             next();
           });
