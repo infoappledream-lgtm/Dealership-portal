@@ -1,0 +1,99 @@
+{
+  "entities": {
+    "Scan": {
+      "title": "Vehicle Scan",
+      "description": "Details extracted from car listing screenshots",
+      "type": "object",
+      "properties": {
+        "makeModel": { "type": "string" },
+        "trimEdition": { "type": "string" },
+        "year": { "type": "string" },
+        "price": { "type": "string" },
+        "mileage": { "type": "string" },
+        "scannedAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" },
+        "leadId": { "type": "string", "description": "Link to the lead that generated this scan" }
+      },
+      "required": ["makeModel", "price", "scannedAt", "userId"]
+    },
+    "Booking": {
+      "title": "Service/Test Drive Booking",
+      "description": "Customer booking requests",
+      "type": "object",
+      "properties": {
+        "customerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "vehicle": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["customerName", "phone", "vehicle", "createdAt", "userId"]
+    },
+    "Lead": {
+      "title": "Sales Lead",
+      "description": "Capture details from the 'Unlock Floor' stage",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "budget": { "type": "string" },
+        "status": { "type": "string", "enum": ["New", "In Progress", "Sold", "Lost"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" },
+        "saleDetails": {
+          "type": "object",
+          "properties": {
+            "salePrice": { "type": "number" },
+            "commissionType": { "type": "string", "enum": ["Flat Fee", "Percentage"] },
+            "commissionAmount": { "type": "number" },
+            "soldAt": { "type": "string", "format": "date-time" }
+          }
+        }
+      },
+      "required": ["name", "phone", "createdAt", "userId"]
+    },
+    "Branding": {
+      "title": "Whitelabel Branding",
+      "description": "Configuration for app branding and contact info",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "role": { "type": "string" },
+        "tagline": { "type": "string" },
+        "description": { "type": "string" },
+        "logoUrl": { "type": "string" },
+        "heroImageUrl": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "dealershipName": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "accentColor": { "type": "string" },
+        "goldColor": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/scans/{scanId}": {
+      "schema": "Scan",
+      "description": "Collection of vehicle scans"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of dealership bookings"
+    },
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Collection of leads and sales"
+    },
+    "/settings/{settingId}": {
+      "schema": "Branding",
+      "description": "App-wide configuration and branding"
+    },
+    "/profiles/{name}": {
+      "schema": "Branding",
+      "description": "Individual salesperson branding and bio"
+    }
+  }
+}

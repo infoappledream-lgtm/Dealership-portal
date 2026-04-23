@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitive Definition
+    function isSignedIn() {
+      // Allow dealers signed in with Google
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      // Master admin
+      return isSignedIn() && 
+             request.auth.token.email == 'info.appledream@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-\\.]+$');
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Validation Blueprint for 'Lead'
+    function isValidLeadCreate(data) {
+      let allowedKeys = ['name', 'phone', 'budget', 'referrer', 'status', 'createdAt', 'wishlist'];
+      return data.keys().hasOnly(allowedKeys) &&
+             data.keys().hasAll(['name', 'phone', 'referrer', 'status', 'createdAt', 'wishlist']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.phone is string && data.phone.size() > 0 && data.phone.size() <= 50 &&
+             data.referrer is string && data.referrer.size() > 0 && data.referrer.size() <= 100 &&
+             data.status == 'New' &&
+             data.createdAt == request.time &&
+             data.wishlist is list && data.wishlist.size() == 0 &&
+             (data.keys().hasAll(['budget']) ? (data.budget is string && data.budget.size() <= 100) : true);
+    }
+    
+    function isValidSaleDetails(saleDetails) {
+      return saleDetails.keys().hasAll(['salePrice', 'commissionType', 'commissionAmount', 'soldAt']) &&
+             saleDetails.salePrice is number &&
+             saleDetails.commissionType in ['Flat Fee', 'Percentage'] &&
+             saleDetails.commissionAmount is number &&
+             saleDetails.soldAt == request.time;
+    }
+
+    // Validation Blueprint for 'Branding'
+    function isValidBranding(data) {
+      return data.get('displayName', '') is string && data.get('displayName', '').size() <= 100 &&
+             data.get('role', '') is string && data.get('role', '').size() <= 100 &&
+             data.get('tagline', '') is string && data.get('tagline', '').size() <= 200 &&
+             data.get('description', '') is string && data.get('description', '').size() <= 1000 &&
+             data.get('logoUrl', '') is string && data.get('logoUrl', '').size() <= 500 &&
+             data.get('heroImageUrl', '') is string && data.get('heroImageUrl', '').size() <= 500 &&
+             data.get('whatsappNumber', '') is string && data.get('whatsappNumber', '').size() <= 50 &&
+             data.get('dealershipName', '') is string && data.get('dealershipName', '').size() <= 100 &&
+             data.get('primaryColor', '') is string && data.get('primaryColor', '').size() <= 50 &&
+             data.get('accentColor', '') is string && data.get('accentColor', '').size() <= 50 &&
+             data.get('goldColor', '') is string && data.get('goldColor', '').size() <= 50 &&
+             data.get('cardOrientation', 'vertical') in ['vertical', 'horizontal'] &&
+             data.get('guideImageUrl', '') is string && data.get('guideImageUrl', '').size() <= 500 &&
+             data.get('videoIntroUrl', '') is string && data.get('videoIntroUrl', '').size() <= 500 &&
+             data.get('showroomUrl', '') is string && data.get('showroomUrl', '').size() <= 500 &&
+             data.get('testimonialQuote', '') is string && data.get('testimonialQuote', '').size() <= 500 &&
+             data.get('testimonialAuthor', '') is string && data.get('testimonialAuthor', '').size() <= 100 &&
+             data.get('dealershipAddress', '') is string && data.get('dealershipAddress', '').size() <= 200 &&
+             data.get('dealershipMapEmbedUrl', '') is string && data.get('dealershipMapEmbedUrl', '').size() <= 500;
+    }
+
+    match /leads/{leadId} {
+      // The public can create a lead, but can only read a lead if they know the exact ID
+      allow get: if isValidId(leadId); 
+      // Only salespeople and admin can query the list of leads
+      allow list: if isAdmin() || (isSignedIn() && resource.data.referrer == request.auth.token.name);
+      
+      // Anonymous/Public creation
+      allow create: if isValidId(leadId) && isValidLeadCreate(incoming());
+      
+      allow update: if isValidId(leadId) && (
+        isAdmin() ||
+        // Public user appending/removing from wishlist
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['wishlist']) &&
+          incoming().wishlist is list && incoming().wishlist.size() <= 50
+        ) ||
+        // Salesperson marking it as Sold and adding saleDetails
+        (
+          isSignedIn() && existing().referrer == request.auth.token.name &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['status', 'saleDetails']) &&
+          incoming().status == 'Sold' &&
+          isValidSaleDetails(incoming().saleDetails)
+        ) ||
+        // Salesperson changing status
+        (
+          isSignedIn() && existing().referrer == request.auth.token.name &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['status']) &&
+          incoming().status in ['New', 'In Progress', 'Sold', 'Lost']
+        )
+      );
+
+      // Only admin can delete leads
+      allow delete: if isValidId(leadId) && isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if isValidId(settingId);
+      allow write: if isValidId(settingId) && isAdmin() && isValidBranding(incoming());
+    }
+
+    match /profiles/{profileId} {
+      allow read: if isValidId(profileId);
+      allow create, update: if isValidId(profileId) && isSignedIn() && isValidBranding(incoming()) && (
+        isAdmin() || request.auth.token.name == profileId
+      );
+      allow delete: if isValidId(profileId) && isAdmin();
+    }
+  }
+}

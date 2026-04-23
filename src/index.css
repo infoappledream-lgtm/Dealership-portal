@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --color-vw-blue: var(--vw-blue, #001E50);
+  --color-vw-accent: var(--vw-accent, #0042A5);
+  --color-vw-bg: #F2F5F8;
+  --color-vw-text: #191921;
+  --color-vw-muted: #6C7A89;
+  --color-vw-border: rgba(0, 30, 80, 0.1);
+  --color-vw-GOLD: var(--vw-gold, #FDB813);
+  --color-vw-LIGHT_BLUE: #8CD4FF;
+}
+
+body {
+  @apply bg-vw-bg text-vw-text;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+@layer utilities {
+  .scan-overlay-gradient {
+    background: linear-gradient(to bottom, transparent 45%, #0042A5 50%, transparent 55%);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #001E50;
+    border-radius: 10px;
+  }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}

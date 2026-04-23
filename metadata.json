@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Bruce VW Deals Tracker",
+  "description": "AI-powered tool for Bruce Sprague to scan VW listings, extract info, and share via WhatsApp.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}
